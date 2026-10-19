@@ -1,0 +1,34 @@
+name: Scheduled payments
+
+on:
+  workflow_dispatch:
+  # Schedule not decided yet, see docs/SCHEDULING.md
+  # schedule:
+  #   - cron: '0 14 5 * *'
+
+jobs:
+  esph:
+    runs-on: ubuntu-latest
+    environment: payments
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run esph
+        env:
+          HEADLESS: 'true'
+          ALLOW_REAL_PAYMENTS: ${{ vars.ALLOW_REAL_PAYMENTS }}
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          ESPH_EMAIL: ${{ secrets.ESPH_EMAIL }}
+          ESPH_CARD: MAIN
+          CARD_MAIN_HOLDER: ${{ secrets.CARD_MAIN_HOLDER }}
+          CARD_MAIN_NUMBER: ${{ secrets.CARD_MAIN_NUMBER }}
+          CARD_MAIN_EXPIRY_MONTH: ${{ secrets.CARD_MAIN_EXPIRY_MONTH }}
+          CARD_MAIN_EXPIRY_YEAR: ${{ secrets.CARD_MAIN_EXPIRY_YEAR }}
+          CARD_MAIN_CVV: ${{ secrets.CARD_MAIN_CVV }}

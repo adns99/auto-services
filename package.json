@@ -1,0 +1,43 @@
+{
+  "name": "auto-services",
+  "version": "0.1.0",
+  "description": "Playwright + TypeScript automation that pays monthly bills across multiple payment platforms.",
+  "scripts": {
+    "test": "playwright test",
+    "test:unit": "playwright test --project=unit",
+    "esph": "playwright test --project=esph",
+    "esph:headed": "HEADLESS=false playwright test --project=esph",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "spell": "cspell --no-progress --gitignore .",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run spell",
+    "gmail:token": "get-refresh-token"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@cspell/dict-es-es": "^3.0.9",
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "1.56.1",
+    "@types/node": "^22.20.5",
+    "cspell": "^10.4.0",
+    "dotenv": "^18.0.8",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-playwright": "^2.12.1",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0"
+  },
+  "dependencies": {
+    "gmail-getter": "^2.4.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  }
+}

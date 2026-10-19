@@ -1,0 +1,26 @@
+{
+  "version": "0.2",
+  "language": "en,es",
+  "files": ["src/**/*.ts", "tests/**/*.ts", "docs/**/*.md", "*.md", "*.ts"],
+  "ignorePaths": ["node_modules", "package-lock.json", "test-results", "playwright-report"],
+  "words": [
+    "APELLIDO",
+    "ESPH",
+    "Heredia",
+    "NOMBRE",
+    "Rica",
+    "SINPE",
+    "adns",
+    "codigo",
+    "digo",
+    "dotenv",
+    "esph",
+    "gmail",
+    "googleusercontent",
+    "linea",
+    "sesi",
+    "tramites",
+    "tseslint"
+  ],
+  "import": ["@cspell/dict-es-es/cspell-ext.json"]
+}
