@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Dev tooling: added the `playwright-best-practices` agent skill (`.agents/skills/`, symlinked for Claude Code) and excluded it from Prettier.
+
 ## 0.1.0 - 2026-10-19
 
 - Project setup: TypeScript, Playwright, ESLint (strict, type-aware), Prettier, cspell (en/es), CI.

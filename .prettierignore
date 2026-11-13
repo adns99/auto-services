@@ -3,3 +3,6 @@ test-results/
 playwright-report/
 blob-report/
 package-lock.json
+# Vendored agent skills (formatting them would break skills-lock.json hashes)
+.agents/
+.claude/skills/
