@@ -8,7 +8,7 @@ on:
 
 jobs:
   esph:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright 1.56 has no browsers for ubuntu-latest (26.04)
     environment: payments
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
           CARD_MAIN_CVV: ${{ secrets.CARD_MAIN_CVV }}
 
   castillo:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright 1.56 has no browsers for ubuntu-latest (26.04)
     environment: payments
     steps:
       - uses: actions/checkout@v4
