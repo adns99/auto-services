@@ -32,3 +32,27 @@ jobs:
           CARD_MAIN_EXPIRY_MONTH: ${{ secrets.CARD_MAIN_EXPIRY_MONTH }}
           CARD_MAIN_EXPIRY_YEAR: ${{ secrets.CARD_MAIN_EXPIRY_YEAR }}
           CARD_MAIN_CVV: ${{ secrets.CARD_MAIN_CVV }}
+
+  castillo:
+    runs-on: ubuntu-latest
+    environment: payments
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run castillo
+        env:
+          HEADLESS: 'true'
+          ALLOW_REAL_PAYMENTS: ${{ vars.ALLOW_REAL_PAYMENTS }}
+          CASTILLO_USERNAME: ${{ secrets.CASTILLO_USERNAME }}
+          CASTILLO_PASSWORD: ${{ secrets.CASTILLO_PASSWORD }}
+          CASTILLO_CARD: MAIN
+          CARD_MAIN_HOLDER: ${{ secrets.CARD_MAIN_HOLDER }}
+          CARD_MAIN_NUMBER: ${{ secrets.CARD_MAIN_NUMBER }}
+          CARD_MAIN_EXPIRY_MONTH: ${{ secrets.CARD_MAIN_EXPIRY_MONTH }}
+          CARD_MAIN_EXPIRY_YEAR: ${{ secrets.CARD_MAIN_EXPIRY_YEAR }}
+          CARD_MAIN_CVV: ${{ secrets.CARD_MAIN_CVV }}

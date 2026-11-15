@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { envFlag } from './src/config/env';
+import { CASTILLO_BASE_URL } from './src/platforms/castillo/config';
 import { ESPH_BASE_URL } from './src/platforms/esph/config';
 
 export default defineConfig({
@@ -20,10 +21,17 @@ export default defineConfig({
   },
   projects: [
     { name: 'unit', testDir: './tests/unit' },
+    // Platform flows against local stand-in pages, offline.
+    { name: 'mock', testDir: './tests/mock', use: { ...devices['Desktop Chrome'] } },
     {
       name: 'esph',
       testDir: './tests/esph',
       use: { ...devices['Desktop Chrome'], baseURL: ESPH_BASE_URL },
+    },
+    {
+      name: 'castillo',
+      testDir: './tests/castillo',
+      use: { ...devices['Desktop Chrome'], baseURL: CASTILLO_BASE_URL },
     },
   ],
 });

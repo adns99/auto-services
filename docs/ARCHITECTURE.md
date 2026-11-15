@@ -12,10 +12,13 @@ src/
       config.ts   URLs and ESPH settings from .env
       EsphPlatform.ts
       pages/      one page object per screen (LoginPage, ...)
+    castillo/     same layout: config.ts, CastilloPlatform.ts, pages/
 tests/
   fixtures.ts     Playwright fixtures that build providers and platforms
   unit/           offline tests
+  mock/           platform flows against local stand-in pages (page.route), offline
   esph/           ESPH flows
+  castillo/       Castillo flows
 ```
 
 ## Page Object Model across different platforms
@@ -39,4 +42,4 @@ Platforms that log in with an emailed code depend on the `EmailCodeProvider` int
 ## Safety
 
 - `retries: 0` and `workers: 1`: a payment is never retried or run twice in parallel.
-- `ALLOW_REAL_PAYMENTS` must be `true` before any platform submits a payment.
+- `ALLOW_REAL_PAYMENTS` must be `true` before any platform submits a payment. Otherwise `pay()` fills the form, stops before the final button and returns status `dry-run`.
