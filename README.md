@@ -2,10 +2,10 @@
 
 Playwright + TypeScript automation that pays monthly bills on several payment platforms, each with the payment method chosen for that bill.
 
-| Platform                     | Login                                        | Payment                                                | Docs                                                     |
-| ---------------------------- | -------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------- |
-| ESPH (esph-sa.com)           | Email code via Gmail (selectors unverified)  | Not built yet                                          | [docs/platforms/esph.md](docs/platforms/esph.md)         |
-| Castillo (pagoscastillo.com) | Username and password (selectors unverified) | Credit card, dry-run by default (selectors unverified) | [docs/platforms/castillo.md](docs/platforms/castillo.md) |
+| Platform                     | Login                                       | Payment                         | Docs                                                     |
+| ---------------------------- | ------------------------------------------- | ------------------------------- | -------------------------------------------------------- |
+| ESPH (esph-sa.com)           | Email code via Gmail (selectors unverified) | Not built yet                   | [docs/platforms/esph.md](docs/platforms/esph.md)         |
+| Castillo (pagoscastillo.com) | Username and password                       | Credit card, dry-run by default | [docs/platforms/castillo.md](docs/platforms/castillo.md) |
 
 ## Quick start
 
