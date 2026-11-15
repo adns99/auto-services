@@ -5,8 +5,11 @@
   "scripts": {
     "test": "playwright test",
     "test:unit": "playwright test --project=unit",
+    "test:mock": "playwright test --project=mock",
     "esph": "playwright test --project=esph",
     "esph:headed": "HEADLESS=false playwright test --project=esph",
+    "castillo": "playwright test --project=castillo",
+    "castillo:headed": "HEADLESS=false playwright test --project=castillo",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",

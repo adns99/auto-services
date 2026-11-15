@@ -18,5 +18,9 @@ All settings live in `.env` (gitignored). Copy `.env.example` and fill it in.
 | `ESPH_PAYMENT_METHOD`       | no                    | Default `credit-card`                                            |
 | `ESPH_CARD`                 | no                    | Card alias to pay ESPH with. Default `MAIN`                      |
 | `ESPH_CODE_EMAIL_QUERY`     | no                    | Gmail search for the code email. Default `from:esph-sa.com`      |
+| `CASTILLO_USERNAME`         | for Castillo          | Username on pagoscastillo.com                                    |
+| `CASTILLO_PASSWORD`         | for Castillo          | Password on pagoscastillo.com                                    |
+| `CASTILLO_PAYMENT_METHOD`   | no                    | Default `credit-card`                                            |
+| `CASTILLO_CARD`             | no                    | Card alias to pay Castillo with. Default `MAIN`                  |
 
 Add more cards by repeating the `CARD_<ALIAS>_*` block with another alias (for example `CARD_VISA_*`) and pointing a platform at it.
