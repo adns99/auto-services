@@ -13,10 +13,13 @@ Castillo Country Club monthly maintenance fee.
 3. Open **Pago de Servicios**.
 4. Press **Marcar todos** (Knockout `click: selectAll`). If **Continuar** does not become enabled (`HasSelectedToPay`) within 10 seconds, there is nothing to pay and `pay()` returns `nothing-due`.
 5. Press **Continuar** (`click: goToCreditCardData`).
-6. Fill `creditCardNumber`, `cardHolderName`, the **Fecha de Expiración** month and year (Kendo DropDownLists, opened with their `.k-select` arrow) and `securityCode`.
+6. Fill the card form (Kendo UI widgets):
+   - `#creditCardNumber` is a Kendo NumericTextBox: its real input is hidden until focused, so the page object clicks the visible `.k-formatted-value` input, fills `#creditCardNumber` and presses Tab so Kendo commits the value.
+   - `#cardHolderName` and `#securityCode` are plain inputs.
+   - **Fecha de Expiración** month and year are hidden `<select id="expirationMonth|expirationYear">`s behind Kendo DropDownLists. The page object clicks the widget (`[aria-owns="<id>_listbox"]`) and picks the item in the popup `#<id>_listbox`, retrying when Kendo closes a popup that opens while the previous one is still animating.
 7. Check the terms checkbox (`policyCheck`).
 8. **Dry run**: unless `ALLOW_REAL_PAYMENTS=true`, stop here and return `dry-run` without pressing **Pagar**.
-9. Press **Pagar** (`payButton`) and wait up to 90 seconds for a success message (`pago realizado`, `transacción aprobada`, `comprobante`, ...) or a failure message (`rechazada`, `denegada`, `error`, ...). Returns `paid` or `failed`.
+9. Press **Pagar** (the visible `#payButton`; the page has a second one for the phone layout) and wait up to 90 seconds for a success message (`pago realizado`, `transacción aprobada`, `comprobante`, ...) or a failure message (`rechazada`, `denegada`, `error`, ...). Returns `paid` or `failed`.
 
 The expiry dropdowns accept options shown as `7`, `07`, `Julio`, `Jul` or `07 - Julio` for the month and `2030` or `30` for the year (`src/utils/expiryOptions.ts`).
 
@@ -29,5 +32,5 @@ npm run castillo:headed   # visible browser, dry run unless ALLOW_REAL_PAYMENTS=
 
 ## Status
 
-- Not verified against the live site: the cloud environment cannot reach pagoscastillo.com. Locators use accessible names first and the Knockout ids from the flow description as fallbacks. Run `npm run castillo:headed` once and adjust `src/platforms/castillo/pages/*`.
+- Card form locators verified against the live site on 2026-11-14 (dry run up to the filled form). The mock site (`tests/mock/castilloSite.ts`) mirrors that markup.
 - The success and failure texts after **Pagar** are guesses. Confirm them on the first real payment.

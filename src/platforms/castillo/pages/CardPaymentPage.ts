@@ -11,47 +11,35 @@ const FAILURE_TEXT = /rechazad[oa]|denegad[oa]|declinad[oa]|no (?:se pudo|fue po
 export type PaymentOutcome = { ok: true; message: string } | { ok: false; message: string };
 
 /**
- * Card data form: number, holder, Kendo month/year dropdowns, CVV, terms, "Pagar".
- * Locators fall back to the Knockout ids the site uses (creditCardNumber, ...).
+ * Card data form (Kendo UI 2019 widgets):
+ * - `#creditCardNumber` is a Kendo NumericTextBox. The real input stays hidden
+ *   until focused; a sibling `.k-formatted-value` input is what the user sees.
+ * - `#expirationMonth` / `#expirationYear` are hidden <select>s behind Kendo
+ *   DropDownLists; the widget wrapper has `aria-owns="<id>_listbox"` and the
+ *   popup list is `#<id>_listbox`, attached to <body>.
+ * - There are two `#payButton`s (desktop and phone layouts); only one is visible.
  */
 export class CardPaymentPage extends BasePage {
   protected readonly path = '/';
 
-  readonly cardNumberInput: Locator = this.byIdOrLabel(
-    'creditCardNumber',
-    /n[uú]mero de (?:la )?tarjeta/i,
-  );
-  readonly holderInput: Locator = this.byIdOrLabel('cardHolderName', /nombre|titular/i);
-  readonly securityCodeInput: Locator = this.byIdOrLabel(
-    'securityCode',
-    /c[oó]digo de seguridad|cvv|cvc/i,
-  );
-  readonly termsCheckbox: Locator = this.page
-    .locator('#policyCheck, [name="policyCheck"]')
-    .or(this.page.getByRole('checkbox', { name: /t[eé]rminos|condiciones/i }))
-    .first();
-  readonly payButton: Locator = this.page
-    .locator('#payButton')
-    .or(this.page.getByRole('button', { name: /^\s*pagar\s*$/i }))
-    .first();
-
-  /** Kendo DropDownLists inside the "Fecha de Expiración" group: month first, then year. */
-  private readonly expiryDropdowns: Locator = this.page
-    .locator('div, fieldset')
-    .filter({ hasText: /fecha de expiraci[oó]n/i })
-    .filter({ has: this.page.locator('.k-select') })
-    .last()
-    .locator('.k-dropdown, .k-dropdownlist, .k-picker');
+  private readonly cardNumberWidget: Locator = this.page
+    .locator('.k-numerictextbox')
+    .filter({ has: this.page.locator('#creditCardNumber') });
+  readonly cardNumberInput: Locator = this.page.locator('#creditCardNumber');
+  readonly holderInput: Locator = this.page.locator('#cardHolderName');
+  readonly securityCodeInput: Locator = this.page.locator('#securityCode');
+  readonly termsCheckbox: Locator = this.page.locator('#policyCheck');
+  readonly payButton: Locator = this.page.locator('#payButton').filter({ visible: true }).first();
 
   protected readyIndicator(): Locator {
-    return this.cardNumberInput;
+    return this.cardNumberWidget;
   }
 
   async fillCard(card: CreditCard): Promise<void> {
-    await this.cardNumberInput.fill(card.number);
+    await this.fillCardNumber(card.number);
     await this.holderInput.fill(card.holder);
-    await this.selectKendoOption(this.expiryDropdowns.nth(0), monthOptionPattern(card.expiryMonth));
-    await this.selectKendoOption(this.expiryDropdowns.nth(1), yearOptionPattern(card.expiryYear));
+    await this.selectKendoOption('expirationMonth', monthOptionPattern(card.expiryMonth));
+    await this.selectKendoOption('expirationYear', yearOptionPattern(card.expiryYear));
     await this.securityCodeInput.fill(card.cvv);
     await this.termsCheckbox.check();
     await expect(this.payButton).toBeEnabled();
@@ -69,20 +57,31 @@ export class CardPaymentPage extends BasePage {
     return { ok: false, message: (await failure.innerText()).trim() };
   }
 
-  private byIdOrLabel(id: string, label: RegExp): Locator {
-    return this.page
-      .locator(`#${id}, [name="${id}"], [data-bind*="${id}"]`)
-      .or(this.page.getByLabel(label))
-      .first();
+  /**
+   * Focusing the visible formatted input makes Kendo swap in the real input;
+   * Tab blurs it so Kendo parses the value and updates the view model.
+   */
+  private async fillCardNumber(number: string): Promise<void> {
+    await this.cardNumberWidget.locator('.k-formatted-value').click();
+    await this.cardNumberInput.fill(number);
+    await this.cardNumberInput.press('Tab');
+    await expect(this.cardNumberInput).toHaveValue(number);
   }
 
-  /** Opens a Kendo DropDownList with its arrow (.k-select) and picks the matching item. */
-  private async selectKendoOption(dropdown: Locator, option: RegExp): Promise<void> {
-    await dropdown.locator('.k-select, .k-input-button').first().click();
-    // Kendo renders the list in a popup attached to <body>, not inside the dropdown.
-    const popup = this.page.locator('.k-animation-container, .k-popup').filter({ visible: true });
-    await popup.getByRole('option', { name: option }).first().click();
-    // The selected text shows in .k-input (Kendo 2019-) or .k-input-value-text (newer).
-    await expect(dropdown.locator('.k-input-value-text, .k-input').first()).toHaveText(option);
+  /**
+   * Opens the Kendo DropDownList that wraps `<select id>` and picks the matching item.
+   * Kendo animates its popups and closes one that is opened while another is still
+   * closing, so open-and-pick is retried until the widget shows the choice.
+   */
+  private async selectKendoOption(id: string, option: RegExp): Promise<void> {
+    const widget = this.page.locator(`[aria-owns="${id}_listbox"]`);
+    const list = this.page.locator(`#${id}_listbox`);
+    const item = list.locator('[role="option"]').filter({ hasText: option }).first();
+    await expect(async () => {
+      if (!(await list.isVisible())) await widget.click();
+      await item.click({ timeout: 3_000 });
+      await expect(widget.locator('.k-input')).toHaveText(option, { timeout: 1_000 });
+    }).toPass({ timeout: 20_000 });
+    await expect(list).toBeHidden();
   }
 }

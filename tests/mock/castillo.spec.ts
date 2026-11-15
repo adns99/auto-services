@@ -38,8 +38,9 @@ test.describe('Castillo flow against a mock site', () => {
     const result = await castillo.pay(method);
 
     expect(result.status).toBe('dry-run');
-    await expect(page.locator('#month')).toContainText('07');
-    await expect(page.locator('#year')).toContainText('2030');
+    await expect(page.locator('#creditCardNumber')).toHaveValue('4111111111111111');
+    await expect(page.locator('#expirationMonth')).toHaveValue('07');
+    await expect(page.locator('#expirationYear')).toHaveValue('2030');
     await expect(page.locator('#policyCheck')).toBeChecked();
     expect(await page.evaluate(() => (window as unknown as { payClicks: number }).payClicks)).toBe(
       0,

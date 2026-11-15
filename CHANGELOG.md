@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Castillo: fixed the card form against the live site. The card number is a Kendo NumericTextBox whose real input is hidden until focused; expiry dropdowns are now located by their `expirationMonth`/`expirationYear` ids and retried while Kendo popups animate; "Pagar" is the visible one of two `#payButton`s. The mock site now reproduces this markup.
 - Castillo (pagoscastillo.com): new platform for the monthly maintenance fee. Username/password login, "Estados y Pagos" > "Pago de Servicios" > "Marcar todos", card form with Kendo month/year dropdowns, terms checkbox and "Pagar". Dry run (stops before "Pagar") unless `ALLOW_REAL_PAYMENTS=true`. New variables `CASTILLO_USERNAME`, `CASTILLO_PASSWORD`, `CASTILLO_PAYMENT_METHOD`, `CASTILLO_CARD`; scripts `castillo` and `castillo:headed`; manual workflow job. Selectors unverified against the live site.
 - Tests: new `mock` Playwright project (`npm run test:mock`, also in CI) that runs the Castillo flow against an offline stand-in page, covering dry run, paid and nothing-due.
 - CI and scheduled workflows pinned to `ubuntu-24.04`: `ubuntu-latest` is now 26.04, which Playwright 1.56 cannot install browsers for.
