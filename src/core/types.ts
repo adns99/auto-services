@@ -19,7 +19,8 @@ export type PaymentMethod = CreditCardPayment;
 
 export interface PaymentResult {
   platform: string;
-  status: 'paid' | 'nothing-due' | 'dry-run' | 'failed';
+  /** `needs-approval`: stopped before paying because the total is above the bill's limit. */
+  status: 'paid' | 'nothing-due' | 'dry-run' | 'needs-approval' | 'failed';
   amount?: string;
   reference?: string;
   message?: string;

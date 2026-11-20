@@ -5,7 +5,7 @@ src/
   config/         env.ts (reads .env), cards.ts (cards by alias)
   core/           types.ts (PaymentPlatform contract), BasePage.ts, BasePlatform.ts
   services/email/ EmailCodeProvider interface + GmailCodeProvider
-  utils/          small pure helpers (extractCode)
+  utils/          small helpers (extractCode, parseAmount, spendingLimit, typeInto)
   platforms/
     index.ts      registry of platforms by id
     esph/
@@ -13,12 +13,14 @@ src/
       EsphPlatform.ts
       pages/      one page object per screen (LoginPage, ...)
     castillo/     same layout: config.ts, CastilloPlatform.ts, pages/
+    claro/        same layout: config.ts, ClaroPlatform.ts, pages/
 tests/
   fixtures.ts     Playwright fixtures that build providers and platforms
   unit/           offline tests
   mock/           platform flows against local stand-in pages (page.route), offline
   esph/           ESPH flows
   castillo/       Castillo flows
+  claro/          Claro flows
 ```
 
 ## Page Object Model across different platforms
