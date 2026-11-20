@@ -6,7 +6,7 @@ Playwright + TypeScript automation that pays monthly bills on several payment pl
 | ---------------------------- | ------------------------------------------- | ------------------------------- | -------------------------------------------------------- |
 | ESPH (esph-sa.com)           | Email code via Gmail (selectors unverified) | Not built yet                   | [docs/platforms/esph.md](docs/platforms/esph.md)         |
 | Castillo (pagoscastillo.com) | Username and password                       | Credit card, dry-run by default | [docs/platforms/castillo.md](docs/platforms/castillo.md) |
-| Claro (cr.mipagoclaro.com)   | Phone number lookup (selectors unverified)  | Credit card, ₡100,000 limit     | [docs/platforms/claro.md](docs/platforms/claro.md)       |
+| Claro (cr.mipagoclaro.com)   | Phone number lookup (selectors unverified)  | Credit card, ₡60,000 limit      | [docs/platforms/claro.md](docs/platforms/claro.md)       |
 
 ## Quick start
 
@@ -21,7 +21,7 @@ npm run castillo:headed # Castillo login + payment form (dry run) with a visible
 npm run claro:headed    # Claro bill lookup + payment form (dry run) with a visible browser
 ```
 
-Real payments are never submitted unless `ALLOW_REAL_PAYMENTS=true` is set in `.env`. Without it, platforms fill the payment form and stop before the final pay button (a dry run). Claro bills above `CLARO_MAX_TOTAL` (₡100,000 by default) also stop until you approve that total with `CLARO_APPROVED_TOTAL`.
+Real payments are never submitted unless `ALLOW_REAL_PAYMENTS=true` is set in `.env`. Without it, platforms fill the payment form and stop before the final pay button (a dry run). Claro bills above `CLARO_MAX_TOTAL` (₡60,000 by default) also stop until you approve that total with `CLARO_APPROVED_TOTAL`.
 
 ## Scripts
 

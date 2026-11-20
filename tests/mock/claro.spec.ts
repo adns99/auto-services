@@ -11,7 +11,7 @@ const config: ClaroConfig = {
   email: 'me@example.com',
   paymentMethod: 'credit-card',
   cardAlias: 'TEST',
-  limit: { max: 100_000 },
+  limit: { max: 60_000 },
 };
 const method: CreditCardPayment = {
   type: 'credit-card',
@@ -83,7 +83,7 @@ test.describe('Claro flow against a mock site', () => {
     await mockClaroSite(page, { total: '134,424.00' });
     const claro = new ClaroPlatform(page, {
       ...config,
-      limit: { max: 100_000, approvedTotal: 134_424 },
+      limit: { max: 60_000, approvedTotal: 134_424 },
     });
 
     await claro.login();

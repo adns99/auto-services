@@ -42,21 +42,21 @@ test.describe('checkSpendingLimit', () => {
   const variable = 'CLARO_APPROVED_TOTAL';
 
   test('allows totals up to the limit', () => {
-    expect(checkSpendingLimit(100_000, { max: 100_000 }, variable).ok).toBe(true);
+    expect(checkSpendingLimit(60_000, { max: 60_000 }, variable).ok).toBe(true);
   });
 
   test('blocks a total above the limit and says how to approve it', () => {
-    const decision = checkSpendingLimit(134_424, { max: 100_000 }, variable);
+    const decision = checkSpendingLimit(134_424, { max: 60_000 }, variable);
     expect(decision.ok).toBe(false);
-    expect(decision.message).toContain('exceeds the ₡100,000.00 limit');
+    expect(decision.message).toContain('exceeds the ₡60,000.00 limit');
     expect(decision.message).toContain('CLARO_APPROVED_TOTAL=134424');
   });
 
   test('allows only the exact total the user approved', () => {
-    expect(checkSpendingLimit(134_424, { max: 100_000, approvedTotal: 134_424 }, variable).ok).toBe(
+    expect(checkSpendingLimit(134_424, { max: 60_000, approvedTotal: 134_424 }, variable).ok).toBe(
       true,
     );
-    const other = checkSpendingLimit(150_000, { max: 100_000, approvedTotal: 134_424 }, variable);
+    const other = checkSpendingLimit(150_000, { max: 60_000, approvedTotal: 134_424 }, variable);
     expect(other.ok).toBe(false);
     expect(other.message).toContain('does not match');
   });

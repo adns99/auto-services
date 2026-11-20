@@ -4,7 +4,7 @@ import type { SpendingLimit } from '@utils/spendingLimit';
 
 export const CLARO_BASE_URL = 'https://cr.mipagoclaro.com';
 export const CLARO_HOME_PATH = '/';
-export const CLARO_DEFAULT_MAX_TOTAL = 100_000;
+export const CLARO_DEFAULT_MAX_TOTAL = 60_000;
 export const CLARO_APPROVE_VARIABLE = 'CLARO_APPROVED_TOTAL';
 
 export interface ClaroConfig {
