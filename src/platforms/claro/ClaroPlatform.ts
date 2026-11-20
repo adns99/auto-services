@@ -67,12 +67,23 @@ export class ClaroPlatform extends BasePlatform {
     }
 
     const outcome = await this.cardPage.pay();
-    if (!outcome.ok) console.error(`[claro] ${outcome.message}`);
+    if (!outcome.ok) {
+      console.error(`[claro] ${outcome.message}`);
+      return { platform: this.id, status: 'failed', amount, message: outcome.message };
+    }
+
+    // Paid either way; a different "Monto pagado" is flagged so it gets a look.
+    let message = outcome.message;
+    if (outcome.amountPaid !== undefined && Math.abs(outcome.amountPaid - total.amount) >= 0.005) {
+      message += ` Warning: the receipt shows ${formatColones(outcome.amountPaid)} paid, not the ${amount} total.`;
+      console.warn(`[claro] ${message}`);
+    }
     return {
       platform: this.id,
-      status: outcome.ok ? 'paid' : 'failed',
-      amount,
-      message: outcome.message,
+      status: 'paid',
+      amount: outcome.amountPaid === undefined ? amount : formatColones(outcome.amountPaid),
+      reference: outcome.authorization,
+      message,
     };
   }
 }

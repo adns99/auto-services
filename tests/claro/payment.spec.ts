@@ -17,7 +17,7 @@ test.describe('Claro mobile and internet bill', () => {
     const result = await claro.pay({ type: 'credit-card', card });
     test.info().annotations.push({
       type: 'result',
-      description: `${result.status}${result.amount ? ` ${result.amount}` : ''}: ${result.message ?? ''}`,
+      description: `${result.status}${result.amount ? ` ${result.amount}` : ''}${result.reference ? ` (authorization ${result.reference})` : ''}: ${result.message ?? ''}`,
     });
 
     // dry-run unless ALLOW_REAL_PAYMENTS=true; nothing-due when there is no pending bill.

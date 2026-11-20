@@ -7,6 +7,10 @@ export interface ClaroMockOptions {
   pending?: boolean;
   /** Where the mock rejects the payment: right after "Pagar" or after "Continuar". */
   decline?: 'pay' | 'confirm' | false;
+  /** Transaction status on the receipt. */
+  status?: string;
+  /** "Monto pagado" on the receipt; defaults to the total. */
+  paid?: string;
 }
 
 /**
@@ -37,6 +41,20 @@ const HTML = String.raw`<!doctype html>
   <button id="continueButton" type="submit" class="submit button-continue">Pagar</button>
 </form>
 <p id="result" hidden></p>
+<section id="receipt" hidden>
+  <h1>¡Gracias por tu pago!</h1>
+  <p>Se aplicará cómo máximo en 5 minutos.</p>
+  <p>Detalle de la transacción:</p>
+  <dl>
+    <dt>Transacción:</dt><dd><span class="icon">✓</span> STATUS</dd>
+    <dt>Teléfono:</dt><dd>88887777</dd>
+    <dt>Monto pagado:</dt><dd>₡ PAID</dd>
+    <dt>Número de autorización:</dt><dd>383983</dd>
+    <dt>Fecha y hora:</dt><dd>20/11/2026, 09:39:40 a.m. hora de Costa Rica</dd>
+  </dl>
+  <p>Recibirás un correo electrónico de confirmación de tu pago en tu factura Claro.</p>
+  <button type="button">Regresar</button>
+</section>
 <script>
   const $ = (id) => document.getElementById(id);
   const byTestId = (id) => document.querySelector('[data-testid="' + id + '"]');
@@ -89,7 +107,7 @@ const HTML = String.raw`<!doctype html>
       window.confirmClicks++;
       confirm.remove();
       if (options.decline === 'confirm') result('Transacción rechazada por el banco emisor', true);
-      else result('Pago realizado con éxito');
+      else $('receipt').hidden = false;
     };
     document.body.append(confirm);
   };
@@ -98,12 +116,18 @@ const HTML = String.raw`<!doctype html>
 
 export async function mockClaroSite(
   page: Page,
-  { total = '34,424.00', pending = true, decline = false }: ClaroMockOptions = {},
+  {
+    total = '34,424.00',
+    pending = true,
+    decline = false,
+    status = 'APROBADA',
+    paid = total,
+  }: ClaroMockOptions = {},
 ): Promise<void> {
-  const body = HTML.replace('TOTAL', total).replace(
-    'OPTIONS',
-    JSON.stringify({ pending, decline }),
-  );
+  const body = HTML.replace('TOTAL', total)
+    .replace('STATUS', status)
+    .replace('PAID', paid)
+    .replace('OPTIONS', JSON.stringify({ pending, decline }));
   await page.route(`${CLARO_BASE_URL}/**`, (route) =>
     route.fulfill({ contentType: 'text/html; charset=utf-8', body }),
   );

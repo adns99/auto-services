@@ -56,7 +56,7 @@ test.describe('Claro flow against a mock site', () => {
     expect(await payClicks(page)).toBe(0);
   });
 
-  test('pays and reads the success message when real payments are allowed', async ({ page }) => {
+  test('pays and checks the receipt when real payments are allowed', async ({ page }) => {
     process.env.ALLOW_REAL_PAYMENTS = 'true';
     await mockClaroSite(page);
     const claro = new ClaroPlatform(page, config);
@@ -64,7 +64,12 @@ test.describe('Claro flow against a mock site', () => {
     await claro.login();
     const result = await claro.pay(method);
 
-    expect(result).toMatchObject({ status: 'paid', message: 'Pago realizado con éxito' });
+    expect(result).toMatchObject({
+      status: 'paid',
+      amount: '₡34,424.00',
+      reference: '383983',
+      message: '¡Gracias por tu pago! Transaction APROBADA, authorization 383983.',
+    });
     expect(await clicks(page)).toEqual({ pay: 1, confirm: 1 });
   });
 
@@ -120,6 +125,30 @@ test.describe('Claro flow against a mock site', () => {
     expect(result.status).toBe('failed');
     expect(result.message).toContain('Transacción rechazada por el banco emisor');
     expect(await clicks(page)).toEqual({ pay: 1, confirm: 1 });
+  });
+
+  test('fails when the receipt is not marked APROBADA', async ({ page }) => {
+    process.env.ALLOW_REAL_PAYMENTS = 'true';
+    await mockClaroSite(page, { status: 'PENDIENTE' });
+    const claro = new ClaroPlatform(page, config);
+
+    await claro.login();
+    const result = await claro.pay(method);
+
+    expect(result.status).toBe('failed');
+    expect(result.message).toContain('not marked APROBADA');
+  });
+
+  test('flags a receipt amount that differs from the total', async ({ page }) => {
+    process.env.ALLOW_REAL_PAYMENTS = 'true';
+    await mockClaroSite(page, { paid: '30,000.00' });
+    const claro = new ClaroPlatform(page, config);
+
+    await claro.login();
+    const result = await claro.pay(method);
+
+    expect(result).toMatchObject({ status: 'paid', amount: '₡30,000.00' });
+    expect(result.message).toContain('receipt shows ₡30,000.00 paid, not the ₡34,424.00 total');
   });
 
   test('returns nothing-due when there is no pending bill', async ({ page }) => {

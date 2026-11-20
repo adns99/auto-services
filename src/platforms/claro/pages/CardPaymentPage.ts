@@ -3,14 +3,15 @@ import type { Locator } from '@playwright/test';
 import { BasePage } from '@core/BasePage';
 import type { CreditCard } from '@core/types';
 import { typeInto } from '@utils/typeInto';
+import { PaymentStatusPage } from './PaymentStatusPage';
 
-const SUCCESS_TEXT =
-  /pago (?:realizado|exitoso|aplicado|procesado|aprobado)|transacci[oó]n (?:exitosa|aprobada)|gracias por su pago|comprobante/i;
 const FAILURE_TEXT =
   /rechazad[oa]|denegad[oa]|declinad[oa]|inv[aá]lid[oa]|no (?:se pudo|fue posible)|fondos insuficientes|error/i;
 const CONFIRMATION_TIMEOUT = 90_000;
 
-export type PaymentOutcome = { ok: true; message: string } | { ok: false; message: string };
+export type PaymentOutcome =
+  | { ok: true; message: string; authorization?: string; amountPaid?: number }
+  | { ok: false; message: string };
 
 /** "Otro medio de pago": card number, expiry (MM/YY), CVV, email, "Pagar" and "Continuar". */
 export class CardPaymentPage extends BasePage {
@@ -31,10 +32,7 @@ export class CardPaymentPage extends BasePage {
     .locator('#continueButton')
     .filter({ hasText: /continuar/i, visible: true })
     .first();
-  private readonly success: Locator = this.page
-    .getByText(SUCCESS_TEXT)
-    .filter({ visible: true })
-    .first();
+  readonly statusPage = new PaymentStatusPage(this.page);
   private readonly failure: Locator = this.page
     .getByRole('alert')
     .or(this.page.getByText(FAILURE_TEXT))
@@ -54,9 +52,10 @@ export class CardPaymentPage extends BasePage {
   }
 
   /**
-   * Presses "Pagar", then the "Continuar" button the site shows next, and waits for
-   * the success or error message. Both buttons are `#continueButton`, told apart by text.
-   * Never throws for a rejected payment: the site's message comes back in the outcome.
+   * Presses "Pagar", then the "Continuar" button the site shows next, and checks the
+   * receipt: "¡Gracias por tu pago!" and "APROBADA". Both buttons are `#continueButton`,
+   * told apart by text. Never throws for a rejected payment: the site's message comes
+   * back in the outcome.
    */
   async pay(): Promise<PaymentOutcome> {
     await expect(this.payButton).toBeEnabled();
@@ -67,17 +66,28 @@ export class CardPaymentPage extends BasePage {
       return this.timedOut('Pagar');
     }
     if (!(await this.confirmButton.isVisible())) return this.rejected();
-    const successBeforeConfirm = await this.successText();
     await this.confirmButton.click();
 
-    if (!(await this.waitFor(this.success.or(this.failure).first(), 'Continuar'))) {
-      // Some sites show the receipt with "Continuar" and then leave it.
-      return successBeforeConfirm
-        ? { ok: true, message: successBeforeConfirm }
-        : this.timedOut('Continuar');
+    const receiptTitle = this.statusPage.title;
+    if (!(await this.waitFor(receiptTitle.or(this.failure).first(), 'Continuar'))) {
+      return this.timedOut('Continuar');
     }
-    const message = await this.successText();
-    return message ? { ok: true, message } : this.rejected();
+    if (!(await receiptTitle.isVisible())) return this.rejected();
+
+    const receipt = await this.statusPage.read();
+    if (!receipt.approved) {
+      return {
+        ok: false,
+        message: `Claro showed "${receipt.title}" but the transaction is not marked APROBADA. Check the Claro account before running again.`,
+      };
+    }
+    const authorization = receipt.authorization ? `, authorization ${receipt.authorization}` : '';
+    return {
+      ok: true,
+      message: `${receipt.title} Transaction APROBADA${authorization}.`,
+      authorization: receipt.authorization,
+      amountPaid: receipt.amountPaid,
+    };
   }
 
   private async waitFor(target: Locator, after: string): Promise<boolean> {
@@ -90,11 +100,6 @@ export class CardPaymentPage extends BasePage {
     }
   }
 
-  private async successText(): Promise<string | undefined> {
-    if (!(await this.success.isVisible())) return undefined;
-    return (await this.success.innerText()).trim();
-  }
-
   private async rejected(): Promise<PaymentOutcome> {
     const error = (await this.failure.innerText()).trim();
     return { ok: false, message: `Claro rejected the payment: ${error || 'unknown error'}` };
@@ -103,7 +108,7 @@ export class CardPaymentPage extends BasePage {
   private timedOut(after: string): PaymentOutcome {
     return {
       ok: false,
-      message: `No confirmation or error message within ${String(CONFIRMATION_TIMEOUT / 1000)} s after "${after}". Check the Claro account before running again.`,
+      message: `No receipt or error message within ${String(CONFIRMATION_TIMEOUT / 1000)} s after "${after}". Check the Claro account before running again.`,
     };
   }
 }
