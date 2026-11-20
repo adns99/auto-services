@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { envFlag } from './src/config/env';
 import { CASTILLO_BASE_URL } from './src/platforms/castillo/config';
+import { CLARO_BASE_URL } from './src/platforms/claro/config';
 import { ESPH_BASE_URL } from './src/platforms/esph/config';
 
 export default defineConfig({
@@ -32,6 +33,11 @@ export default defineConfig({
       name: 'castillo',
       testDir: './tests/castillo',
       use: { ...devices['Desktop Chrome'], baseURL: CASTILLO_BASE_URL },
+    },
+    {
+      name: 'claro',
+      testDir: './tests/claro',
+      use: { ...devices['Desktop Chrome'], baseURL: CLARO_BASE_URL },
     },
   ],
 });

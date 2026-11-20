@@ -10,6 +10,8 @@
     "esph:headed": "HEADLESS=false playwright test --project=esph",
     "castillo": "playwright test --project=castillo",
     "castillo:headed": "HEADLESS=false playwright test --project=castillo",
+    "claro": "playwright test --project=claro",
+    "claro:headed": "HEADLESS=false playwright test --project=claro",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",

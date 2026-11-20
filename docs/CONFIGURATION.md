@@ -22,5 +22,13 @@ All settings live in `.env` (gitignored). Copy `.env.example` and fill it in.
 | `CASTILLO_PASSWORD`         | for Castillo          | Password on pagoscastillo.com                                    |
 | `CASTILLO_PAYMENT_METHOD`   | no                    | Default `credit-card`                                            |
 | `CASTILLO_CARD`             | no                    | Card alias to pay Castillo with. Default `MAIN`                  |
+| `PHONE_NUMBER`              | for Claro             | Claro mobile number the bill is looked up by                     |
+| `CLARO_EMAIL`               | for Claro             | Email entered on the Claro card form for the receipt             |
+| `CLARO_PAYMENT_METHOD`      | no                    | Default `credit-card`                                            |
+| `CLARO_CARD`                | no                    | Card alias to pay Claro with. Default `MAIN`                     |
+| `CLARO_MAX_TOTAL`           | no                    | Highest Claro total paid without approval. Default `60000`       |
+| `CLARO_APPROVED_TOTAL`      | no                    | Approves one bill above the limit: set it to that exact total    |
+
+A Claro bill above `CLARO_MAX_TOTAL` is never paid on its own: the run stops with `needs-approval` and prints the variable to set. See [Claro](platforms/claro.md).
 
 Add more cards by repeating the `CARD_<ALIAS>_*` block with another alias (for example `CARD_VISA_*`) and pointing a platform at it.

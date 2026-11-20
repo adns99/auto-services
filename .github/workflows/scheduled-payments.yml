@@ -56,3 +56,29 @@ jobs:
           CARD_MAIN_EXPIRY_MONTH: ${{ secrets.CARD_MAIN_EXPIRY_MONTH }}
           CARD_MAIN_EXPIRY_YEAR: ${{ secrets.CARD_MAIN_EXPIRY_YEAR }}
           CARD_MAIN_CVV: ${{ secrets.CARD_MAIN_CVV }}
+
+  claro:
+    runs-on: ubuntu-24.04 # Playwright 1.56 has no browsers for ubuntu-latest (26.04)
+    environment: payments
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run claro
+        env:
+          HEADLESS: 'true'
+          ALLOW_REAL_PAYMENTS: ${{ vars.ALLOW_REAL_PAYMENTS }}
+          PHONE_NUMBER: ${{ secrets.PHONE_NUMBER }}
+          CLARO_EMAIL: ${{ secrets.CLARO_EMAIL }}
+          CLARO_CARD: MAIN
+          CLARO_MAX_TOTAL: ${{ vars.CLARO_MAX_TOTAL }}
+          CLARO_APPROVED_TOTAL: ${{ vars.CLARO_APPROVED_TOTAL }}
+          CARD_MAIN_HOLDER: ${{ secrets.CARD_MAIN_HOLDER }}
+          CARD_MAIN_NUMBER: ${{ secrets.CARD_MAIN_NUMBER }}
+          CARD_MAIN_EXPIRY_MONTH: ${{ secrets.CARD_MAIN_EXPIRY_MONTH }}
+          CARD_MAIN_EXPIRY_YEAR: ${{ secrets.CARD_MAIN_EXPIRY_YEAR }}
+          CARD_MAIN_CVV: ${{ secrets.CARD_MAIN_CVV }}

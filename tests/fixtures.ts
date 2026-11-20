@@ -2,12 +2,14 @@ import { test as base } from '@playwright/test';
 import type { EmailCodeProvider } from '@services/email/EmailCodeProvider';
 import { GmailCodeProvider } from '@services/email/GmailCodeProvider';
 import { CastilloPlatform } from '@platforms/castillo/CastilloPlatform';
+import { ClaroPlatform } from '@platforms/claro/ClaroPlatform';
 import { EsphPlatform } from '@platforms/esph/EsphPlatform';
 
 interface Fixtures {
   codes: EmailCodeProvider;
   esph: EsphPlatform;
   castillo: CastilloPlatform;
+  claro: ClaroPlatform;
 }
 
 export const test = base.extend<Fixtures>({
@@ -19,6 +21,9 @@ export const test = base.extend<Fixtures>({
   },
   castillo: async ({ page }, use) => {
     await use(new CastilloPlatform(page));
+  },
+  claro: async ({ page }, use) => {
+    await use(new ClaroPlatform(page));
   },
 });
 

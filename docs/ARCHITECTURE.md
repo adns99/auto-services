@@ -5,7 +5,7 @@ src/
   config/         env.ts (reads .env), cards.ts (cards by alias)
   core/           types.ts (PaymentPlatform contract), BasePage.ts, BasePlatform.ts
   services/email/ EmailCodeProvider interface + GmailCodeProvider
-  utils/          small pure helpers (extractCode)
+  utils/          small helpers (extractCode, parseAmount, spendingLimit, typeInto)
   platforms/
     index.ts      registry of platforms by id
     esph/
@@ -13,12 +13,14 @@ src/
       EsphPlatform.ts
       pages/      one page object per screen (LoginPage, ...)
     castillo/     same layout: config.ts, CastilloPlatform.ts, pages/
+    claro/        same layout: config.ts, ClaroPlatform.ts, pages/
 tests/
   fixtures.ts     Playwright fixtures that build providers and platforms
   unit/           offline tests
   mock/           platform flows against local stand-in pages (page.route), offline
   esph/           ESPH flows
   castillo/       Castillo flows
+  claro/          Claro flows
 ```
 
 ## Page Object Model across different platforms
@@ -43,3 +45,18 @@ Platforms that log in with an emailed code depend on the `EmailCodeProvider` int
 
 - `retries: 0` and `workers: 1`: a payment is never retried or run twice in parallel.
 - `ALLOW_REAL_PAYMENTS` must be `true` before any platform submits a payment. Otherwise `pay()` fills the form, stops before the final button and returns status `dry-run`.
+- Spending limits: a platform can refuse to pay a bill above a set total until the user approves that exact total (`checkSpendingLimit` in `src/utils/spendingLimit.ts`; Claro uses `CLARO_MAX_TOTAL` and `CLARO_APPROVED_TOTAL`). It then returns `needs-approval`.
+
+## Payment results
+
+`pay()` returns a `PaymentResult` (`src/core/types.ts`) with one of these statuses:
+
+| Status           | Meaning                                                                                                        |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `paid`           | The site confirmed the payment. `reference` holds its receipt or authorization number when the site shows one. |
+| `dry-run`        | The form was filled but not submitted (`ALLOW_REAL_PAYMENTS` is not `true`).                                   |
+| `nothing-due`    | There was nothing to pay.                                                                                      |
+| `needs-approval` | The total is above the bill's limit; nothing was paid.                                                         |
+| `failed`         | The site showed an error or no confirmation; `message` has the details.                                        |
+
+The platform test specs fail on `needs-approval` and `failed`, so those show up in the report with their message.

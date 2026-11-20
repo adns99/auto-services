@@ -6,6 +6,7 @@ Playwright + TypeScript automation that pays monthly bills on several payment pl
 | ---------------------------- | ------------------------------------------- | ------------------------------- | -------------------------------------------------------- |
 | ESPH (esph-sa.com)           | Email code via Gmail (selectors unverified) | Not built yet                   | [docs/platforms/esph.md](docs/platforms/esph.md)         |
 | Castillo (pagoscastillo.com) | Username and password                       | Credit card, dry-run by default | [docs/platforms/castillo.md](docs/platforms/castillo.md) |
+| Claro (cr.mipagoclaro.com)   | Phone number lookup (selectors unverified)  | Credit card, ₡60,000 limit      | [docs/platforms/claro.md](docs/platforms/claro.md)       |
 
 ## Quick start
 
@@ -17,9 +18,10 @@ npm run test:unit       # offline tests
 npm run test:mock       # platform flows against offline stand-in pages
 npm run esph:headed     # ESPH login with a visible browser
 npm run castillo:headed # Castillo login + payment form (dry run) with a visible browser
+npm run claro:headed    # Claro bill lookup + payment form (dry run) with a visible browser
 ```
 
-Real payments are never submitted unless `ALLOW_REAL_PAYMENTS=true` is set in `.env`. Without it, platforms fill the payment form and stop before the final pay button (a dry run).
+Real payments are never submitted unless `ALLOW_REAL_PAYMENTS=true` is set in `.env`. Without it, platforms fill the payment form and stop before the final pay button (a dry run). Claro bills above `CLARO_MAX_TOTAL` (₡60,000 by default) also stop until you approve that total with `CLARO_APPROVED_TOTAL`.
 
 ## Scripts
 
@@ -33,6 +35,7 @@ Real payments are never submitted unless `ALLOW_REAL_PAYMENTS=true` is set in `.
 | `npm run test:unit`                    | Unit tests, no browser or credentials needed                                     |
 | `npm run esph` / `esph:headed`         | ESPH flow, headless or visible                                                   |
 | `npm run castillo` / `castillo:headed` | Castillo flow, headless or visible                                               |
+| `npm run claro` / `claro:headed`       | Claro flow, headless or visible                                                  |
 | `npm run gmail:token`                  | Generates a Gmail refresh token (see [docs/GMAIL_SETUP.md](docs/GMAIL_SETUP.md)) |
 | `npm run report`                       | Opens the last Playwright HTML report                                            |
 
