@@ -12,7 +12,7 @@ const CONFIRMATION_TIMEOUT = 90_000;
 
 export type PaymentOutcome = { ok: true; message: string } | { ok: false; message: string };
 
-/** "Otro medio de pago": card number, expiry (MM/YY), CVV, email and "Pagar". */
+/** "Otro medio de pago": card number, expiry (MM/YY), CVV, email, "Pagar" and "Continuar". */
 export class CardPaymentPage extends BasePage {
   protected readonly path = '/';
 
@@ -22,7 +22,24 @@ export class CardPaymentPage extends BasePage {
   readonly expiryInput: Locator = this.page.getByTestId('qa_ceCla_servicePay_input_expiration');
   readonly cvvInput: Locator = this.page.getByTestId('qa_ceCla_servicePay_input_cvv');
   readonly emailInput: Locator = this.page.getByTestId('qa_ceCla_servicePay_input_email');
-  readonly payButton: Locator = this.page.locator('#continueButton');
+  /** "Pagar" and the following "Continuar" are both `#continueButton`. */
+  readonly payButton: Locator = this.page
+    .locator('#continueButton')
+    .filter({ hasText: /pagar/i, visible: true })
+    .first();
+  readonly confirmButton: Locator = this.page
+    .locator('#continueButton')
+    .filter({ hasText: /continuar/i, visible: true })
+    .first();
+  private readonly success: Locator = this.page
+    .getByText(SUCCESS_TEXT)
+    .filter({ visible: true })
+    .first();
+  private readonly failure: Locator = this.page
+    .getByRole('alert')
+    .or(this.page.getByText(FAILURE_TEXT))
+    .filter({ visible: true, hasText: /\S/ })
+    .first();
 
   protected readyIndicator(): Locator {
     return this.cardNumberInput;
@@ -37,30 +54,56 @@ export class CardPaymentPage extends BasePage {
   }
 
   /**
-   * Presses "Pagar" and waits for the site's success or error message.
+   * Presses "Pagar", then the "Continuar" button the site shows next, and waits for
+   * the success or error message. Both buttons are `#continueButton`, told apart by text.
    * Never throws for a rejected payment: the site's message comes back in the outcome.
    */
   async pay(): Promise<PaymentOutcome> {
     await expect(this.payButton).toBeEnabled();
     await this.payButton.click();
-    const success = this.page.getByText(SUCCESS_TEXT).filter({ visible: true }).first();
-    const failure = this.page
-      .getByRole('alert')
-      .or(this.page.getByText(FAILURE_TEXT))
-      .filter({ visible: true, hasText: /\S/ })
-      .first();
+
+    // An error (declined card, bad data) can show instead of "Continuar".
+    if (!(await this.waitFor(this.confirmButton.or(this.failure).first(), 'Pagar'))) {
+      return this.timedOut('Pagar');
+    }
+    if (!(await this.confirmButton.isVisible())) return this.rejected();
+    const successBeforeConfirm = await this.successText();
+    await this.confirmButton.click();
+
+    if (!(await this.waitFor(this.success.or(this.failure).first(), 'Continuar'))) {
+      // Some sites show the receipt with "Continuar" and then leave it.
+      return successBeforeConfirm
+        ? { ok: true, message: successBeforeConfirm }
+        : this.timedOut('Continuar');
+    }
+    const message = await this.successText();
+    return message ? { ok: true, message } : this.rejected();
+  }
+
+  private async waitFor(target: Locator, after: string): Promise<boolean> {
     try {
-      await success.or(failure).first().waitFor({ timeout: CONFIRMATION_TIMEOUT });
+      await target.waitFor({ timeout: CONFIRMATION_TIMEOUT });
+      return true;
     } catch {
-      return {
-        ok: false,
-        message: `No confirmation or error message within ${String(CONFIRMATION_TIMEOUT / 1000)} s after "Pagar". Check the Claro account before running again.`,
-      };
+      console.warn(`[claro] nothing happened within the time limit after "${after}"`);
+      return false;
     }
-    if (await success.isVisible()) {
-      return { ok: true, message: (await success.innerText()).trim() };
-    }
-    const error = (await failure.innerText()).trim();
+  }
+
+  private async successText(): Promise<string | undefined> {
+    if (!(await this.success.isVisible())) return undefined;
+    return (await this.success.innerText()).trim();
+  }
+
+  private async rejected(): Promise<PaymentOutcome> {
+    const error = (await this.failure.innerText()).trim();
     return { ok: false, message: `Claro rejected the payment: ${error || 'unknown error'}` };
+  }
+
+  private timedOut(after: string): PaymentOutcome {
+    return {
+      ok: false,
+      message: `No confirmation or error message within ${String(CONFIRMATION_TIMEOUT / 1000)} s after "${after}". Check the Claro account before running again.`,
+    };
   }
 }

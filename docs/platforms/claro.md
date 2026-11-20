@@ -23,7 +23,8 @@ Claro Costa Rica mobile and internet bill, looked up by phone number. There is n
 7. Press **Otro medio de pago** (`data-testid="invoices__pay-button"`).
 8. Fill the card form: card number (`qa_ceCla_servicePay_input_card_number`), expiry as `MM/YY` (`qa_ceCla_servicePay_input_expiration`), CVV (`qa_ceCla_servicePay_input_cvv`) and `CLARO_EMAIL` (`qa_ceCla_servicePay_input_email`). Masked fields are checked the same way as the phone number.
 9. **Dry run**: unless `ALLOW_REAL_PAYMENTS=true`, stop here and return `dry-run` without pressing **Pagar**.
-10. Press **Pagar** (`#continueButton`) and wait up to 90 seconds for a success message (`pago realizado`, `transacción aprobada`, `gracias por su pago`, `comprobante`, ...) or an error (an `alert`, `rechazada`, `denegada`, `inválida`, `fondos insuficientes`, `error`, ...). Returns `paid`, or `failed` with Claro's message, which is also printed to the console. If neither shows, it returns `failed` and asks you to check the account before running again.
+10. Press **Pagar** (`#continueButton` with the text "Pagar") and wait up to 90 seconds for the next step's **Continuar** button, or for an error (an `alert`, `rechazada`, `denegada`, `inválida`, `fondos insuficientes`, `error`, ...).
+11. Press **Continuar** (also `#continueButton`, `type="button"`, told apart from **Pagar** by its text) and wait up to 90 seconds for a success message (`pago realizado`, `transacción aprobada`, `gracias por su pago`, `comprobante`, ...) or an error. Returns `paid`, or `failed` with Claro's message, which is also printed to the console. If neither shows, it returns `failed` and asks you to check the account before running again. If the success message was already on screen next to **Continuar** and the page then moves on, the payment still counts as `paid`.
 
 ## Running
 
@@ -36,5 +37,5 @@ npm run claro:headed   # visible browser, dry run unless ALLOW_REAL_PAYMENTS=tru
 
 - Selectors come from Adrian's description of the live site (2026-11-20) and have not been run against it yet: the cloud environment cannot reach cr.mipagoclaro.com. Run `npm run claro:headed` (dry run) once to confirm.
 - If the card form turns out to be inside an iframe, the card page object needs a `frameLocator`.
-- The success and error texts after **Pagar** are guesses. Confirm them on the first real payment.
+- The success and error texts after **Pagar** and **Continuar** are guesses. Confirm them on the first real payment.
 - With several pending bills the first **Total** on the page is used.

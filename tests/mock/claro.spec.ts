@@ -25,8 +25,12 @@ const method: CreditCardPayment = {
   },
 };
 
-const payClicks = (page: Page): Promise<number> =>
-  page.evaluate(() => (window as unknown as { payClicks: number }).payClicks);
+const clicks = (page: Page): Promise<{ pay: number; confirm: number }> =>
+  page.evaluate(() => {
+    const counts = window as unknown as { payClicks: number; confirmClicks: number };
+    return { pay: counts.payClicks, confirm: counts.confirmClicks };
+  });
+const payClicks = async (page: Page): Promise<number> => (await clicks(page)).pay;
 
 test.use({ baseURL: CLARO_BASE_URL });
 
@@ -61,7 +65,7 @@ test.describe('Claro flow against a mock site', () => {
     const result = await claro.pay(method);
 
     expect(result).toMatchObject({ status: 'paid', message: 'Pago realizado con éxito' });
-    expect(await payClicks(page)).toBe(1);
+    expect(await clicks(page)).toEqual({ pay: 1, confirm: 1 });
   });
 
   test('stops before paying when the total is above the limit', async ({ page }) => {
@@ -92,9 +96,22 @@ test.describe('Claro flow against a mock site', () => {
     expect(result).toMatchObject({ status: 'paid', amount: '₡134,424.00' });
   });
 
-  test('reports the error Claro shows when the payment is declined', async ({ page }) => {
+  test('reports the error Claro shows right after Pagar', async ({ page }) => {
     process.env.ALLOW_REAL_PAYMENTS = 'true';
-    await mockClaroSite(page, { decline: true });
+    await mockClaroSite(page, { decline: 'pay' });
+    const claro = new ClaroPlatform(page, config);
+
+    await claro.login();
+    const result = await claro.pay(method);
+
+    expect(result.status).toBe('failed');
+    expect(result.message).toContain('Tarjeta inválida, verifique los datos');
+    expect(await clicks(page)).toEqual({ pay: 1, confirm: 0 });
+  });
+
+  test('reports the error Claro shows after Continuar', async ({ page }) => {
+    process.env.ALLOW_REAL_PAYMENTS = 'true';
+    await mockClaroSite(page, { decline: 'confirm' });
     const claro = new ClaroPlatform(page, config);
 
     await claro.login();
@@ -102,6 +119,7 @@ test.describe('Claro flow against a mock site', () => {
 
     expect(result.status).toBe('failed');
     expect(result.message).toContain('Transacción rechazada por el banco emisor');
+    expect(await clicks(page)).toEqual({ pay: 1, confirm: 1 });
   });
 
   test('returns nothing-due when there is no pending bill', async ({ page }) => {

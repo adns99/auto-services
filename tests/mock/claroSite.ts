@@ -5,7 +5,8 @@ export interface ClaroMockOptions {
   /** Shown as "Total - ₡ <total>". */
   total?: string;
   pending?: boolean;
-  decline?: boolean;
+  /** Where the mock rejects the payment: right after "Pagar" or after "Continuar". */
+  decline?: 'pay' | 'confirm' | false;
 }
 
 /**
@@ -41,6 +42,7 @@ const HTML = String.raw`<!doctype html>
   const byTestId = (id) => document.querySelector('[data-testid="' + id + '"]');
   const digits = (value) => value.replace(/\D/g, '');
   window.payClicks = 0;
+  window.confirmClicks = 0;
   window.submitted = null;
   const options = OPTIONS;
 
@@ -63,6 +65,12 @@ const HTML = String.raw`<!doctype html>
     expiry.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
   });
 
+  // "Pagar" and the next step's "Continuar" share id="continueButton", like the live site.
+  const result = (text, error) => {
+    $('result').textContent = text;
+    if (error) $('result').setAttribute('role', 'alert');
+    $('result').hidden = false;
+  };
   $('continueButton').onclick = () => {
     window.payClicks++;
     window.submitted = {
@@ -71,9 +79,19 @@ const HTML = String.raw`<!doctype html>
       email: byTestId('qa_ceCla_servicePay_input_email').value,
     };
     $('card').hidden = true;
-    $('result').textContent = options.decline ? 'Transacción rechazada por el banco emisor' : 'Pago realizado con éxito';
-    if (options.decline) $('result').setAttribute('role', 'alert');
-    $('result').hidden = false;
+    if (options.decline === 'pay') return result('Tarjeta inválida, verifique los datos', true);
+    const confirm = document.createElement('button');
+    confirm.id = 'continueButton';
+    confirm.type = 'button';
+    confirm.className = 'submit button-continue';
+    confirm.textContent = 'Continuar';
+    confirm.onclick = () => {
+      window.confirmClicks++;
+      confirm.remove();
+      if (options.decline === 'confirm') result('Transacción rechazada por el banco emisor', true);
+      else result('Pago realizado con éxito');
+    };
+    document.body.append(confirm);
   };
 </script>
 </body></html>`;
